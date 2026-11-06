@@ -82,6 +82,7 @@ export default async function ReplyPage({ params, searchParams }: { params: Prom
         ) : (
           <p className="muted" style={{ margin: 0 }}>We saved their reply to your case. When automatic reading is on, we'll explain it here.</p>
         )}
+        <Link href={`/app/support?topic=letters&case=${id}`} className="muted small" style={{ alignSelf: "center" }}>Something wrong or offensive in this AI reading? Report it</Link>
         <Link href={`/app/cases/${id}`} className="btn-plain" style={{ alignSelf: "center" }}>Back to the case</Link>
       </div>
     </main>

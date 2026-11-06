@@ -14,7 +14,7 @@ export default function Privacy() {
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>What we keep</h2>
         <p>Your account email, the documents you upload, the letters and notes you write, and your case dates. That's what the app needs to work.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>How we use it</h2>
-        <p>Only to run your cases: reading your documents, drafting letters, and reminding you about deadlines. Documents are sent to our AI provider to be read, under terms that don't allow them to be used for training.</p>
+        <p>Only to run your cases: reading your documents, drafting letters, and reminding you about deadlines. Documents and case details are sent to our AI provider, Anthropic (the maker of the Claude AI models), to be read and to draft letters, under terms that don't allow them to be used for training. We ask for your permission in the app before the first document is sent.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>What we never do</h2>
         <p>We never sell your data, never use it for advertising, and never put trackers of any kind on your case pages.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Health information</h2>

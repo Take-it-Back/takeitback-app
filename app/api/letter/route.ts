@@ -15,6 +15,8 @@ export async function POST(request: Request) {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Please sign in." }, { status: 401 });
+  const { data: consent } = await supabase.from("profiles").select("health_consent_at").eq("id", user.id).maybeSingle();
+  if (!consent?.health_consent_at) return NextResponse.json({ error: "Please agree to how we use AI and handle health information first. You'll see the agreement when you scan a document.", consent: true }, { status: 403 });
 
   const { caseId, kind = "dispute", instructions = "", target = "" } = (await request.json().catch(() => ({}))) as {
     caseId?: string;

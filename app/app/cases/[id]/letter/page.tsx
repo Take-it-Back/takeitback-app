@@ -41,6 +41,7 @@ export default async function LetterPage({ params, searchParams }: { params: Pro
       {letter ? (
         <div className="stack g20">
           <LetterEditor letter={letter} caseId={id} />
+          <Link href={`/app/support?topic=letters&case=${id}`} className="muted small" style={{ alignSelf: "flex-start", padding: "8px 0" }}>Something wrong or offensive in this AI-written letter? Report it</Link>
           {(sends || []).filter((x) => x.status !== "pending_payment").map((x) => (
             <div key={x.id} className={x.status === "failed" ? "panel-orange stack g8" : "panel-gray stack g4"}>
               <span style={{ fontWeight: 600 }}>{x.method === "mail" ? "Certified mail" : "Fax"} · {x.status === "sent" ? "sent" : x.status === "failed" ? "didn't go through" : "processing"}</span>
