@@ -59,7 +59,7 @@ export async function POST(request: Request) {
   const body = newText(r) || "(The email had no text. Check Resend for attachments.)";
   const to = (r.to || []).join(", ").slice(0, 200);
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!, { auth: { persistSession: false } });
   const { data, error } = await supabase.rpc("support_inbound", {
     p_secret: process.env.BILLING_SECRET,
     p_email_id: r.id || emailId,

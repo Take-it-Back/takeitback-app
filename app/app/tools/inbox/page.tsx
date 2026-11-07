@@ -9,7 +9,7 @@ export default async function InboxPage() {
   const { supabase, user } = await requireUser();
   const [{ data: p }, plan] = await Promise.all([supabase.from("profiles").select("inbox_token, health_consent_at").eq("id", user.id).maybeSingle(), getPlan(supabase, user.id)]);
   const domain = process.env.INBOUND_DOMAIN || "in.takeitback.app";
-  const enabled = Boolean(process.env.INBOUND_SECRET && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const enabled = Boolean(process.env.INBOUND_SECRET && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
   const address = p?.inbox_token ? `${p.inbox_token}@${domain}` : null;
 
   return (

@@ -8,14 +8,15 @@ export async function GET() {
   const t0 = Date.now();
   let db = false;
   try {
-    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+    const sb = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!, { auth: { persistSession: false } });
     const { error } = await sb.from("wins").select("id", { count: "exact", head: true });
     db = !error;
   } catch {
     db = false;
   }
   // Names only (never values) of required settings that are missing.
-  const missing = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "NEXT_PUBLIC_SITE_URL", "BILLING_SECRET"].filter((k) => !process.env[k]);
+  const missing = ["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SITE_URL", "BILLING_SECRET"].filter((k) => !process.env[k]);
+  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
   const body = {
     ok: db && !missing.length,
     db,

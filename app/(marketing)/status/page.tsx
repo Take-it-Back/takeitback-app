@@ -19,7 +19,7 @@ const pct = (n: number | null) => (n == null ? "—" : `${n >= 99.995 ? "100" : 
 const dayColor = (p?: number) => (p == null ? "var(--line)" : p >= 99.5 ? "#3C7D4E" : p >= 95 ? "#D9A441" : "var(--orange)");
 
 export default async function StatusPage() {
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!, { auth: { persistSession: false } });
   const { data, error } = await supabase.rpc("uptime_status");
   const s = data as Status | null;
   const stale = !s?.checked_at || Date.now() - new Date(s.checked_at).getTime() > 10 * 60000;

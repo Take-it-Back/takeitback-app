@@ -46,12 +46,13 @@ function tokenFrom(m: Inbound) {
 export async function POST(request: Request) {
   // 403 tells the sender to stop retrying.
   if (!authorized(request)) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "Not configured" }, { status: 503 });
+  const adminKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!adminKey) return NextResponse.json({ error: "Not configured" }, { status: 503 });
   const msg = (await request.json().catch(() => ({}))) as Inbound;
   const token = tokenFrom(msg);
   if (!token) return NextResponse.json({ ok: true, skipped: "no recipient token" });
 
-  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  const admin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, adminKey, { auth: { persistSession: false } });
   const { data: prof } = await admin.from("profiles").select("id, plan, plan_status, state, health_consent_at").eq("inbox_token", token).maybeSingle();
   if (!prof) return NextResponse.json({ ok: true, skipped: "unknown inbox" });
   const premium = prof.plan === "premium" && ["active", "trialing", "past_due"].includes(prof.plan_status || "");
