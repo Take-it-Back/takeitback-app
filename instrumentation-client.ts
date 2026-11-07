@@ -21,6 +21,8 @@ if (phKey) {
     person_profiles: "identified_only",
     capture_pageview: "history_change",
   });
+  // Every event says which app and which surface it came from (docs/analytics-events.md).
+  posthog.register({ app: "takeitback", platform: "web" });
 }
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
