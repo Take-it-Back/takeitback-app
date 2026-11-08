@@ -6,6 +6,7 @@ import { appPlatform } from "@/lib/appContext";
 import GooglePlans from "@/components/GooglePlans";
 import { APPLE_PRODUCTS, GOOGLE_PREMIUM } from "@/lib/appleProducts";
 import ApplePlans from "@/components/ApplePlans";
+import TrackView from "@/components/TrackView";
 
 const FREE = ["1 scan a month", "A plain-English summary, in English or Spanish", "Your state's rules on every case", "General next steps and red flags", "Free legal aid finder"];
 const PREMIUM = ["Unlimited scans", "Every problem we found, in full, with the rule behind it", "Letters written for you, ready to print or email", "Deadlines read from your letters, with email, text and phone alerts", "Their replies read and explained", "Your whole case file and a printable case packet", "Complaints to regulators and credit report disputes", "Certified mail and fax sent for you ($8.99 / $1.99)", "Forward bills by email and add family helpers"];
@@ -43,6 +44,7 @@ export default async function UpgradePage({ searchParams }: { searchParams: Prom
 
   return (
     <main id="main" className="app-main wide">
+      <TrackView event="paywallViewed" />
       <BackLink href="/app" />
       <div className="stack g8" style={{ margin: "8px 0 20px" }}>
         <h1 className="page-title" style={{ fontSize: 40 }}>Let us do the <em className="o">work</em></h1>
