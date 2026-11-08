@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { EVENTS, identify, track } from "@/lib/product-events";
 import { CtaButton } from "@/components/ui";
 import SocialSignIn from "@/components/SocialSignIn";
 import type { Providers } from "@/lib/authProviders";
@@ -35,6 +36,8 @@ export default function LoginForm({ providers }: { providers: Providers }) {
           options: { data: { full_name: name }, emailRedirectTo: `${origin}/auth/callback?next=/app` },
         });
         if (error) throw error;
+        if (data.user) identify(data.user.id);
+        track(EVENTS.signedUp, { method: "email" });
         if (data.session) {
           router.push("/app");
           router.refresh();
@@ -43,8 +46,10 @@ export default function LoginForm({ providers }: { providers: Providers }) {
         }
       } else if (mode === "signin") {
         const login = email.trim();
-        const { error } = await supabase.auth.signInWithPassword({ email: login, password });
+        const { data: signedIn, error } = await supabase.auth.signInWithPassword({ email: login, password });
         if (error) throw error;
+        if (signedIn?.user) identify(signedIn.user.id);
+        track(EVENTS.signedIn, { method: "email" });
         router.push(next);
         router.refresh();
       } else {
