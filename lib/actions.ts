@@ -9,6 +9,7 @@ import { theirDeadlineFor } from "./letters";
 import type { Category } from "./types";
 import { US_STATES } from "./states";
 import { sendEmail } from "./email";
+import { serverTrack } from "./server-events";
 import { helperInviteEmail } from "./emails/templates";
 import { logError } from "./limits";
 
@@ -41,6 +42,7 @@ export async function markLetterSent(letterId: string, method: string, sentDate:
     supabase.from("events").insert({ case_id: letter.case_id, user_id: user.id, title: `Letter sent by ${method}`, happened_at: new Date(sentDate + "T12:00:00Z").toISOString() }),
     supabase.from("cases").update({ status: "waiting", stage: Math.min(4, (c?.stage || 1) + 1) }).eq("id", letter.case_id),
   ]);
+  await serverTrack("key_action", user.id, { action: "letter_sent", method });
   revalidatePath("/app", "layout");
   return { ok: true, caseId: letter.case_id };
 }
