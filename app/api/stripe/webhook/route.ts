@@ -5,6 +5,7 @@ import { periodEnd, stripe } from "@/lib/stripe";
 import { applyBilling, grantCasePass, PRICES, revokeCasePass } from "@/lib/plan";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
+import { serverTrack } from "@/lib/server-events";
 import { paymentFailedEmail, referralRewardEmail, renewalReminderEmail, subscriptionEndedEmail, subscriptionStartedEmail, trialEndingEmail, type Email } from "@/lib/emails/templates";
 
 const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: cents % 100 ? 2 : 0 });
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
         const sub = await stripe().subscriptions.retrieve(typeof s.subscription === "string" ? s.subscription : s.subscription.id);
         const customer = custId(s.customer);
         await applyBilling(supabase, { userId: s.client_reference_id, customer, subscription: sub.id, status: sub.status, periodEnd: periodEnd(sub) });
+        await serverTrack(sub.status === "trialing" ? "trial_started" : "subscribed", s.client_reference_id, { plan: priceLabel(sub).plan });
         await rewardReferral(supabase, s.client_reference_id, Number(sub.metadata?.banked_months || 0));
         // Confirmation with the renewal terms they agreed to (auto-renewal laws require this acknowledgment).
         const pl = priceLabel(sub);
@@ -118,6 +120,7 @@ export async function POST(request: Request) {
       const sub = await stripe().subscriptions.retrieve(evSub.id).catch(() => evSub);
       const userId = (sub.metadata?.user_id as string) || null;
       await applyBilling(supabase, { userId, customer: custId(sub.customer), subscription: sub.id, status: sub.status, periodEnd: periodEnd(sub) });
+      if (event.type === "customer.subscription.deleted") await serverTrack("subscription_canceled", userId ?? undefined);
       if (event.type === "customer.subscription.deleted") await mailCustomer(custId(sub.customer), (name) => subscriptionEndedEmail({ name }));
     }
   } catch (e) {
