@@ -5,33 +5,21 @@ name: iPhone app (simulator check)
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, phase-2-monorepo]
     paths: ["ios/**", "apps/*/ios/**", "capacitor.config.ts", "apps/*/capacitor.config.ts", ".github/workflows/ios-simulator.yml"]
-  # Called by mobile-layout-check.yml to prove the build still works after the monorepo move.
-  workflow_call:
-    inputs:
-      app_dir:
-        type: string
-        default: ""
-      simulate_monorepo:
-        type: boolean
-        default: false
 
 jobs:
   simulator:
     runs-on: macos-26
     timeout-minutes: 60
     env:
-      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
-      APP_DIR: ${{ inputs.app_dir || vars.MOBILE_APP_DIR || '.' }}
+      # Folder that holds capacitor.config.ts, android/ and ios/. apps/web since the monorepo move.
+      APP_DIR: ${{ vars.MOBILE_APP_DIR || 'apps/web' }}
     defaults:
       run:
         shell: bash
     steps:
       - uses: actions/checkout@v4
-      - name: Simulate the monorepo layout (test only)
-        if: inputs.simulate_monorepo
-        run: bash .github/scripts/simulate-monorepo.sh "$APP_DIR"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -68,5 +56,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: iphone-simulator${{ inputs.simulate_monorepo && '-monorepo' || '' }}
+          name: iphone-simulator
           path: ${{ env.APP_DIR }}/shots/

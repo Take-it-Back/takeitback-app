@@ -1,7 +1,7 @@
 // node --test tests/*.test.ts
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isOlder } from "../lib/version.ts";
+import { isOlder } from "../src/version.ts";
 
 test("older versions are caught", () => {
   assert.equal(isOlder("1.0.0", "1.0.1"), true);

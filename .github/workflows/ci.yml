@@ -3,7 +3,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, phase-2-monorepo]
   pull_request:
 
 jobs:
@@ -16,19 +16,20 @@ jobs:
       NEXT_PUBLIC_SITE_URL: https://www.takeitback.app
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Type check
-        run: npx tsc --noEmit
+        run: pnpm typecheck
       - name: Unit tests
-        run: npm test
-      - name: Dependency audit (production, high and above)
-        run: npm audit --omit=dev --audit-level=critical
+        run: pnpm test
+      - name: Dependency audit (production, critical)
+        run: pnpm audit --prod --audit-level critical
       - name: Build
-        run: npm run build
+        run: pnpm build
 
   database:
     # Generated types must match the live database, and row-level security must hold.
@@ -44,6 +45,8 @@ jobs:
         with:
           node-version: 24
       - name: Types drift check
+        working-directory: apps/web
         run: node scripts/db-checks.mjs types
       - name: Row-level security tests
+        working-directory: apps/web
         run: node scripts/db-checks.mjs rls

@@ -9,15 +9,24 @@ Fight unfair medical bills, insurance denials, landlord problems and debt collec
 - **Outside services:** Anthropic (reading and letters), Stripe (web payments), Apple (in-app purchases, push, Sign in with Apple), Google (sign-in, analytics on public pages), Resend (email), Twilio (texts), Lob and Telnyx (mail and fax), Postmark (forwarded bills).
 - **iPhone app:** Capacitor shell that loads the live site (`ios/`, see `docs/ios-app.md`). Android is not built yet.
 
+## Layout
+pnpm + Turborepo workspace.
+- `apps/web`: the Next.js site and app, plus the Capacitor iPhone (`ios/`) and Android (`android/`) shells.
+- `packages/shared`: pure TypeScript shared with the Phase 3 phone app (version checks today).
+- `packages/config`: shared TypeScript settings.
+- `supabase/`: migrations from Nov 2026 on, edge functions, changes waiting on approval (`pending/`).
+- `docs/`: runbooks and reviews.
+
 ## Develop
 ```
-npm install
-cp .env.example .env.local   # every setting is documented there
-npm run dev
+corepack enable
+pnpm install
+cp apps/web/.env.example apps/web/.env.local   # every setting is documented there
+pnpm dev
 ```
 
 ## Checks
-- `npx tsc --noEmit` and `npm run build` run in CI on every push (`.github/workflows/ci.yml`).
+- `pnpm typecheck`, `pnpm test` and `pnpm build` run in CI on every push (`.github/workflows/ci.yml`).
 - `npm run smoke` checks the live site's public pages, protections and `/api/health`. It runs after each deploy and every 30 minutes (`site-check.yml`).
 - `npm run test:e2e` runs the full user journey against the live site with "ZZ test" data (needs `E2E_ADMIN_EMAIL`, `E2E_ADMIN_PASSWORD` and Playwright).
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isOlder } from "@/lib/version";
+import { isOlder } from "@takeitback/shared";
 
 type CapApp = { getInfo: () => Promise<{ version?: string; build?: string }> };
 type Cap = { isNativePlatform?: () => boolean; getPlatform?: () => string; Plugins?: { App?: CapApp } };

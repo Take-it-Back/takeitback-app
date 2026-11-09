@@ -23,8 +23,8 @@ jobs:
     runs-on: macos-26
     timeout-minutes: 60
     env:
-      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
-      APP_DIR: ${{ vars.MOBILE_APP_DIR || '.' }}
+      # Folder that holds capacitor.config.ts, android/ and ios/. apps/web since the monorepo move.
+      APP_DIR: ${{ vars.MOBILE_APP_DIR || 'apps/web' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

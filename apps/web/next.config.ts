@@ -20,6 +20,8 @@ const CSP = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Workspace packages ship TypeScript source; Next compiles them.
+  transpilePackages: ["@takeitback/shared"],
   experimental: {
     // Forms only carry text; files go straight to private storage.
     serverActions: { bodySizeLimit: "1mb" },

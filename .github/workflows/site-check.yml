@@ -22,4 +22,4 @@ jobs:
           cat health.json; echo
           test "$code" = "200"
       - name: Every public page, share tags and private-page protection
-        run: node scripts/smoke.mjs https://www.takeitback.app
+        run: node apps/web/scripts/smoke.mjs https://www.takeitback.app

@@ -19,17 +19,8 @@ on:
         type: boolean
         default: false
   push:
-    branches: [main]
+    branches: [main, phase-2-monorepo]
     paths: ["android/**", "apps/*/android/**", "capacitor.config.ts", "apps/*/capacitor.config.ts", ".github/workflows/android.yml"]
-  # Called by mobile-layout-check.yml to prove the build still works after the monorepo move.
-  workflow_call:
-    inputs:
-      app_dir:
-        type: string
-        default: ""
-      simulate_monorepo:
-        type: boolean
-        default: false
 
 jobs:
   build:
@@ -38,14 +29,11 @@ jobs:
     env:
       ANDROID_VERSION_NAME: ${{ github.event.inputs.version || '1.0' }}
       ANDROID_VERSION_CODE: ${{ github.run_number }}
-      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
-      # Set the MOBILE_APP_DIR repository variable at cutover; no workflow edit needed.
-      APP_DIR: ${{ inputs.app_dir || vars.MOBILE_APP_DIR || '.' }}
+      # Folder that holds capacitor.config.ts, android/ and ios/. apps/web since the monorepo move.
+      # The MOBILE_APP_DIR repository variable can override it.
+      APP_DIR: ${{ vars.MOBILE_APP_DIR || 'apps/web' }}
     steps:
       - uses: actions/checkout@v4
-      - name: Simulate the monorepo layout (test only)
-        if: inputs.simulate_monorepo
-        run: bash .github/scripts/simulate-monorepo.sh "$APP_DIR"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -137,7 +125,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-build${{ inputs.simulate_monorepo && '-monorepo' || '' }}
+          name: android-build
           path: |
             ${{ env.APP_DIR }}/android/app/build/outputs/apk/debug/app-debug.apk
             ${{ env.APP_DIR }}/android/app/build/outputs/bundle/release/app-release.aab
