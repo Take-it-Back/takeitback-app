@@ -33,11 +33,14 @@ function iso(d: Date) {
 }
 const short = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  // Only our scheduler may start this run, once CRON_SECRET is set as a function secret (the cron job sends it).
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (cronSecret && req.headers.get("x-cron-secret") !== cronSecret) return new Response("not allowed", { status: 401 });
   const twSid = Deno.env.get("TWILIO_ACCOUNT_SID");
   const twToken = Deno.env.get("TWILIO_AUTH_TOKEN");
   const twFrom = Deno.env.get("TWILIO_FROM");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const serviceKey = (Deno.env.get("SUPABASE_SECRET_KEY") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"))!;
   const smsOn = Boolean(twSid && twToken && twFrom);
 
   const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);

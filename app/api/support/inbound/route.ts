@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { notifyCustomerReply, notifyNewTicket } from "@/lib/support";
+import { publishableKey, supabaseUrl } from "@/lib/supabase/keys";
+import { privileged } from "@/lib/supabase/privileged";
 
 // Email sent to any @takeitback.app address arrives here from Resend (webhook event "email.received").
 // The webhook only names the email; we fetch it from Resend with our own key, so a forged call can't inject anything.
@@ -59,8 +61,8 @@ export async function POST(request: Request) {
   const body = newText(r) || "(The email had no text. Check Resend for attachments.)";
   const to = (r.to || []).join(", ").slice(0, 200);
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!, { auth: { persistSession: false } });
-  const { data, error } = await supabase.rpc("support_inbound", {
+  const supabase = createClient(supabaseUrl(), publishableKey(), { auth: { persistSession: false } });
+  const { data, error } = await privileged().rpc("support_inbound", {
     p_secret: process.env.BILLING_SECRET,
     p_email_id: r.id || emailId,
     p_from_email: email,

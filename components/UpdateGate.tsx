@@ -1,21 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isOlder } from "@/lib/version";
 
 type CapApp = { getInfo: () => Promise<{ version?: string; build?: string }> };
 type Cap = { isNativePlatform?: () => boolean; getPlatform?: () => string; Plugins?: { App?: CapApp } };
-
-function isOlder(have: string, min: string): boolean {
-  const a = have.split(".").map((n) => parseInt(n, 10));
-  const b = min.split(".").map((n) => parseInt(n, 10));
-  if (a.some(Number.isNaN) || b.some(Number.isNaN)) return false;
-  for (let i = 0; i < Math.max(a.length, b.length); i++) {
-    const x = a[i] ?? 0;
-    const y = b[i] ?? 0;
-    if (x !== y) return x < y;
-  }
-  return false;
-}
 
 /* Forced-update gate for the phone apps. Inside the app it asks /api/app-version for the oldest
    version still allowed and, if this build is older, covers the screen with an update prompt.
@@ -30,7 +19,8 @@ export default function UpdateGate() {
         const info = await cap.Plugins?.App?.getInfo();
         const have = info?.version;
         if (!have) return;
-        const res = await fetch("/api/app-version", { cache: "no-store" });
+        const platform = cap.getPlatform?.() === "android" ? "android" : "ios";
+        const res = await fetch(`/api/app-version?platform=${platform}`, { cache: "no-store" });
         const { min } = (await res.json()) as { min?: string };
         if (min && isOlder(have, min)) {
           setStore(cap.getPlatform?.() === "ios" ? "https://apps.apple.com/app/take-it-back" : "https://play.google.com/store/apps/details?id=app.takeitback");

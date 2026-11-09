@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { privileged } from "@/lib/supabase/privileged";
 
 export const PRICES = {
   monthly: { amount: 1499, label: "$14.99", interval: "month" as const, per: "a month" },
@@ -54,7 +55,7 @@ export async function applyBilling(
   supabase: SupabaseClient,
   args: { userId?: string | null; customer: string | null; subscription: string | null; status: string; periodEnd: number | null }
 ) {
-  const { error } = await supabase.rpc("billing_apply", {
+  const { error } = await privileged().rpc("billing_apply", {
     p_secret: process.env.BILLING_SECRET,
     p_user: args.userId ?? null,
     p_customer: args.customer,
@@ -70,7 +71,7 @@ export async function grantCasePass(
   supabase: SupabaseClient,
   args: { userId: string; caseId: string; ref: string; source: "stripe" | "apple" | "google"; amount: number | null }
 ) {
-  const { data, error } = await supabase.rpc("grant_case_pass", {
+  const { data, error } = await privileged().rpc("grant_case_pass", {
     p_secret: process.env.BILLING_SECRET,
     p_user: args.userId,
     p_case: args.caseId,
@@ -84,5 +85,5 @@ export async function grantCasePass(
 }
 
 export async function revokeCasePass(supabase: SupabaseClient, ref: string) {
-  await supabase.rpc("revoke_case_pass", { p_secret: process.env.BILLING_SECRET, p_ref: ref });
+  await privileged().rpc("revoke_case_pass", { p_secret: process.env.BILLING_SECRET, p_ref: ref });
 }

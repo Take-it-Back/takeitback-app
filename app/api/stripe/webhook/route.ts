@@ -7,6 +7,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendEmail } from "@/lib/email";
 import { serverTrack } from "@/lib/server-events";
 import { paymentFailedEmail, referralRewardEmail, renewalReminderEmail, subscriptionEndedEmail, subscriptionStartedEmail, trialEndingEmail, type Email } from "@/lib/emails/templates";
+import { publishableKey, supabaseUrl } from "@/lib/supabase/keys";
+import { privileged } from "@/lib/supabase/privileged";
 
 const usd = (cents: number) => (cents / 100).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: cents % 100 ? 2 : 0 });
 const day = (unix: number) => new Date(unix * 1000).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "America/New_York" });
@@ -35,8 +37,8 @@ function priceLabel(sub: Stripe.Subscription) {
 /** Give-a-month, get-a-month: a month's credit for the new subscriber and the friend who invited them. */
 async function rewardReferral(supabase: SupabaseClient, userId: string, bankedUsed: number) {
   const secret = process.env.BILLING_SECRET;
-  if (bankedUsed > 0) await supabase.rpc("referral_bank_month", { p_secret: secret, p_user: userId, p_delta: -bankedUsed });
-  const { data } = await supabase.rpc("referral_reward", { p_secret: secret, p_user: userId });
+  if (bankedUsed > 0) await privileged().rpc("referral_bank_month", { p_secret: secret, p_user: userId, p_delta: -bankedUsed });
+  const { data } = await privileged().rpc("referral_reward", { p_secret: secret, p_user: userId });
   const row = (data as { referrer: string; referrer_customer: string | null; friend_customer: string | null }[] | null)?.[0];
   if (!row) return;
   const credit = (customer: string, who: string) =>
@@ -45,7 +47,7 @@ async function rewardReferral(supabase: SupabaseClient, userId: string, bankedUs
   if (row.referrer_customer) {
     await credit(row.referrer_customer, "a friend joined");
     await mailCustomer(row.referrer_customer, (name) => referralRewardEmail({ name, applied: true }));
-  } else await supabase.rpc("referral_bank_month", { p_secret: secret, p_user: row.referrer, p_delta: 1 });
+  } else await privileged().rpc("referral_bank_month", { p_secret: secret, p_user: row.referrer, p_delta: 1 });
 }
 
 // Keeps plans in sync when subscriptions start, renew, fail or end, and sends the matching email.
@@ -62,10 +64,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Bad signature" }, { status: 400 });
   }
 
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+  const supabase = createClient(supabaseUrl(), publishableKey(), { auth: { persistSession: false } });
 
   // Stripe can send the same event more than once; handle each one once.
-  const { data: seen } = await supabase.rpc("stripe_event_seen", { p_secret: process.env.BILLING_SECRET, p_id: event.id });
+  const { data: seen } = await privileged().rpc("stripe_event_seen", { p_secret: process.env.BILLING_SECRET, p_id: event.id });
   if (seen) return NextResponse.json({ received: true, duplicate: true });
 
   try {
@@ -127,6 +129,6 @@ export async function POST(request: Request) {
     console.error(e);
     return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
-  await supabase.rpc("stripe_event_done", { p_secret: process.env.BILLING_SECRET, p_id: event.id, p_type: event.type });
+  await privileged().rpc("stripe_event_done", { p_secret: process.env.BILLING_SECRET, p_id: event.id, p_type: event.type });
   return NextResponse.json({ received: true });
 }

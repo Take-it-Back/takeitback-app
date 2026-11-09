@@ -1,6 +1,8 @@
 # Database
 
-The schema lives in the Supabase project (applied via migrations `core_schema`, `owns_case_invoker`, `daily_reminders_cron`).
-Tables: profiles, cases, documents, letters, deadlines, events — all with row-level security scoped to the signed-in user.
-Storage: private bucket `case-files`, files stored under `<user_id>/<case_id>/…`.
-Edge function: `daily-reminders` (pg_cron, 12:45 UTC daily) emails deadline nudges when `RESEND_API_KEY` is set.
+Most of the schema was applied directly to the Supabase project before migrations were kept here.
+From 9 Nov 2026 every change is saved in this folder as `<timestamp>_<name>.sql` on the day it is applied.
+`supabase/pending/` holds changes that are written but must not be applied yet (each file says when).
+
+Checks: `lib/database.types.ts` is generated from the live database and `tests/rls/rls.sql` tests row-level security.
+Both run in CI (`database` job) once the `SUPABASE_ACCESS_TOKEN` repo secret is set. See `scripts/db-checks.mjs`.

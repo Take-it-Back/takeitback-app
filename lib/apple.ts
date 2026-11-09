@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { APPLE_ROOTS_B64 } from "@/lib/appleRoots";
 
 import { APPLE_PRODUCTS } from "@/lib/appleProducts";
+import { privileged } from "@/lib/supabase/privileged";
 
 export const APPLE_BUNDLE_ID = process.env.APPLE_BUNDLE_ID || "app.takeitback";
 const PRODUCT_IDS = new Set(Object.values(APPLE_PRODUCTS));
@@ -63,7 +64,7 @@ export function appleState(tx: JWSTransactionDecodedPayload, renewal?: JWSRenewa
 
 /** Saves the Apple subscription state. Returns the account it was saved on (null if no account matched). */
 export async function applyApple(supabase: SupabaseClient, userId: string | null, s: AppleState): Promise<string | null> {
-  const { data, error } = await supabase.rpc("billing_apply_apple", {
+  const { data, error } = await privileged().rpc("billing_apply_apple", {
     p_secret: process.env.BILLING_SECRET,
     p_user: userId,
     p_original_tx: s.originalTx,

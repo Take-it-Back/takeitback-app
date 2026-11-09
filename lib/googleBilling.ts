@@ -2,6 +2,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { acknowledgeSubscription, consumeProduct, googleProduct, googleSubscription, GOOGLE_PRODUCTS } from "@/lib/google";
 import { CASE_PASS, grantCasePass } from "@/lib/plan";
+import { privileged } from "@/lib/supabase/privileged";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -11,7 +12,7 @@ export async function applyGoogleSubscription(supabase: SupabaseClient, purchase
   const owner = s.userHint && UUID.test(s.userHint) ? s.userHint.toLowerCase() : null;
   if (!owner) return { ok: false as const, error: "This purchase isn't linked to a Take it back account." };
   if (expectUser && owner !== expectUser) return { ok: false as const, error: "This Google Play subscription belongs to a different Take it back account." };
-  const { error } = await supabase.rpc("billing_apply_google", {
+  const { error } = await privileged().rpc("billing_apply_google", {
     p_secret: process.env.BILLING_SECRET,
     p_user: owner,
     p_token: purchaseToken,

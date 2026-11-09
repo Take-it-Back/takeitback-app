@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { letterPdf } from "./pdf";
 import { logError } from "./limits";
+import { privileged } from "@/lib/supabase/privileged";
 
 // Sending letters for people: certified mail through Lob, fax through Telnyx.
 export const SEND_PRICES = { mail: { cents: 899, label: "$8.99", name: "Certified mail" }, fax: { cents: 199, label: "$1.99", name: "Fax" } } as const;
@@ -98,5 +99,5 @@ export async function dispatchSend(supabase: SupabaseClient, send: SendRow, from
 
 /** Send status is changed by the server only (the database refuses it from the browser). A sent letter stays sent. */
 export async function setSendStatus(supabase: SupabaseClient, id: string, status: "paid" | "sent" | "failed", provider: string | null, error: string | null) {
-  await supabase.rpc("send_set_status", { p_secret: process.env.BILLING_SECRET, p_id: id, p_status: status, p_provider: provider, p_error: error });
+  await privileged().rpc("send_set_status", { p_secret: process.env.BILLING_SECRET, p_id: id, p_status: status, p_provider: provider, p_error: error });
 }

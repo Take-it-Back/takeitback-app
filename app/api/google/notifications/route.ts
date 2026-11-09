@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { playReady } from "@/lib/google";
 import { applyGoogleSubscription } from "@/lib/googleBilling";
 import { revokeCasePass } from "@/lib/plan";
+import { publishableKey, supabaseUrl } from "@/lib/supabase/keys";
 
 // Google Play real-time developer notifications (Pub/Sub push). The message only says "this purchase changed";
 // we look the purchase up at Google ourselves, so a forged message can't change anything.
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ ok: true, skipped: "unreadable" });
   }
-  const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!, { auth: { persistSession: false } });
+  const supabase = createClient(supabaseUrl(), publishableKey(), { auth: { persistSession: false } });
   try {
     if (note.subscriptionNotification?.purchaseToken) {
       await applyGoogleSubscription(supabase, note.subscriptionNotification.purchaseToken, null);

@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { appleState, applyApple, verifyNotification, verifyRenewalInfo, verifyTransaction } from "@/lib/apple";
 import { APPLE_CASE_PASS } from "@/lib/appleProducts";
 import { revokeCasePass } from "@/lib/plan";
+import { publishableKey, supabaseUrl } from "@/lib/supabase/keys";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -28,14 +29,14 @@ export async function POST(request: Request) {
     if (tx.productId === APPLE_CASE_PASS) {
       // Case passes are one-time purchases: only a refund changes anything.
       if ((note.notificationType === "REFUND" || note.notificationType === "REVOKE") && tx.transactionId) {
-        const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+        const supabase = createClient(supabaseUrl(), publishableKey(), { auth: { persistSession: false } });
         await revokeCasePass(supabase, `apple:${tx.transactionId}`);
       }
       return NextResponse.json({ ok: true });
     }
     const state = appleState(tx, renewal);
     if (!state) return NextResponse.json({ ok: true, skipped: true });
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, { auth: { persistSession: false } });
+    const supabase = createClient(supabaseUrl(), publishableKey(), { auth: { persistSession: false } });
     const hint = state.userHint && UUID.test(state.userHint) ? state.userHint.toLowerCase() : null;
     const saved = await applyApple(supabase, hint, state);
     return NextResponse.json({ ok: true, matched: Boolean(saved) });
