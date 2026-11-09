@@ -82,6 +82,25 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: ./gradlew --no-daemon assembleDebug bundleRelease
 
+      - name: Check 16 KB page support
+        # Google Play blocks updates without it from Feb 1, 2027. Every native library in the release bundle
+        # must have ELF LOAD segments aligned to at least 16 KB (0x4000).
+        working-directory: ${{ env.APP_DIR }}
+        run: |
+          set -e
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          rm -rf "$RUNNER_TEMP/aab" && mkdir -p "$RUNNER_TEMP/aab" && unzip -q "$AAB" -d "$RUNNER_TEMP/aab"
+          bad=0; n=0
+          for so in $(find "$RUNNER_TEMP/aab" -name "*.so"); do
+            n=$((n+1))
+            for a in $(readelf -lW "$so" | awk '$1=="LOAD"{print $NF}'); do
+              if [ $((a)) -lt $((0x4000)) ]; then echo "NOT 16 KB aligned: ${so#$RUNNER_TEMP/aab/} ($a)"; bad=1; fi
+            done
+          done
+          echo "Checked $n native libraries."
+          [ "$bad" = 0 ] && echo "16 KB PAGE CHECK PASSED"
+          exit $bad
+
       - name: Turn on hardware acceleration for the emulator
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
