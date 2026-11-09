@@ -29,6 +29,8 @@ export default function Privacy() {
         <p>If you sign in with Apple or Google, we receive your name and email address from them (or the private relay address Apple gives you), and nothing else. We don&apos;t post anything or read anything from those accounts. If you delete your account after signing in with Apple in our iPhone app, we also tell Apple to remove our access.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Your state privacy rights</h2>
         <p>Wherever you live, you can see, download, correct or delete your information, and we never sell or share it for targeted advertising. Residents of states with privacy laws (including California, Washington, Nevada, Connecticut, Colorado, Virginia, Oregon and Texas) have these rights by law; we give them to everyone. If we turn down a request, you can appeal by replying to our answer.</p>
+        <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Children</h2>
+        <p>Take it back is for adults 18 and older. We don't knowingly collect information from anyone under 18. If you think a child has made an account, write to privacy@takeitback.app and we will delete it.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Your control</h2>
         <p>Download everything or delete your account and all files at any time from the You page in the app. Questions: <a href="mailto:privacy@takeitback.app">privacy@takeitback.app</a>.</p>
       </main>

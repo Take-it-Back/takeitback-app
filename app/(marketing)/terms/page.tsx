@@ -10,7 +10,9 @@ export default function Terms() {
       <main id="main" className="stack g16" style={{ maxWidth: 720, margin: "0 auto", padding: "72px 24px 96px", fontSize: 16, lineHeight: 1.65 }}>
         <span className="eyebrow">Terms</span>
         <h1 className="h-l">The <em className="o">short</em> version</h1>
-        <p className="muted">Last updated October 9, 2026. Full terms will be finalized with counsel before general launch.</p>
+        <p className="muted">Last updated November 9, 2026. Full terms will be finalized with counsel before general launch.</p>
+        <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Who can use it</h2>
+        <p>You must be 18 or older to create an account. Take it back is built for adults handling their own bills, insurance, housing and debts. If we learn an account belongs to someone under 18, we will close it and delete its data.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Not a law firm</h2>
         <p>Take it back gives general information and self-help tools. It is not a law firm, doesn't give legal advice, and using it doesn't create a lawyer-client relationship. You review and send every letter yourself.</p>
         <h2 className="serif" style={{ fontSize: 26, margin: "16px 0 0" }}>Check the dates</h2>

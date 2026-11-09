@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -15,6 +16,7 @@ export default function LoginForm({ providers }: { providers: Providers }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(params.get("error"));
   const [notice, setNotice] = useState<string | null>(null);
@@ -30,10 +32,11 @@ export default function LoginForm({ providers }: { providers: Providers }) {
     const origin = window.location.origin;
     try {
       if (mode === "signup") {
+        if (!adult) throw new Error("Please confirm you're 18 or older to create an account.");
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: name }, emailRedirectTo: `${origin}/auth/callback?next=/app` },
+          options: { data: { full_name: name, age_confirmed_at: new Date().toISOString() }, emailRedirectTo: `${origin}/auth/callback?next=/app` },
         });
         if (error) throw error;
         if (data.user) identify(data.user.id);
@@ -96,6 +99,12 @@ export default function LoginForm({ providers }: { providers: Providers }) {
           <input id="password" aria-invalid={error ? true : undefined} aria-describedby={error ? "login-error" : undefined} type="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete={mode === "signup" ? "new-password" : "current-password"} minLength={8} required />
         </div>
       )}
+      {mode === "signup" && (
+        <label className="row g8" style={{ alignItems: "flex-start", fontSize: 15 }}>
+          <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} required style={{ marginTop: 4, width: 18, height: 18 }} />
+          <span>I&apos;m 18 or older and I agree to the <Link href="/terms" target="_blank">Terms</Link> and <Link href="/privacy" target="_blank">Privacy Policy</Link>.</span>
+        </label>
+      )}
       {error && <p id="login-error" className="error" role="alert" style={{ margin: 0 }}>{error}</p>}
       {notice && <p className="panel-gray" role="status" style={{ margin: 0, fontSize: 15 }}>{notice}</p>}
       <CtaButton block disabled={busy} variant="ink">
@@ -111,7 +120,10 @@ export default function LoginForm({ providers }: { providers: Providers }) {
           <button type="button" className="btn-text" onClick={() => setMode("signin")}>I already have an account</button>
         )}
       </div>
-      <p className="muted small" style={{ margin: 0 }}>Take it back gives information and self-help tools, not legal advice.</p>
+      <p className="muted small" style={{ margin: 0 }}>
+        {mode === "signup" && providers && Object.values(providers).some(Boolean) ? "Signing up with Apple or Google also confirms you're 18 or older and agree to the Terms. " : ""}
+        Take it back gives information and self-help tools, not legal advice.
+      </p>
     </form>
   );
 }
