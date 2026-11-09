@@ -22,14 +22,19 @@ jobs:
   build:
     runs-on: macos-26
     timeout-minutes: 60
+    env:
+      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
+      APP_DIR: ${{ vars.MOBILE_APP_DIR || '.' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npx cap sync ios
+      - name: Install
+        run: bash .github/scripts/install.sh "$APP_DIR"
+      - name: Sync the native project
+        working-directory: ${{ env.APP_DIR }}
+        run: npx cap sync ios
 
       - name: Pick the newest Xcode
         run: |
@@ -48,6 +53,7 @@ jobs:
           printf '%s' "$ASC_KEY_P8" > "$RUNNER_TEMP/keys/AuthKey_${ASC_KEY_ID}.p8"
 
       - name: Build and sign
+        working-directory: ${{ env.APP_DIR }}
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
           KEY_ID: ${{ secrets.ASC_KEY_ID }}
@@ -67,6 +73,7 @@ jobs:
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="${{ github.run_number }}"
 
       - name: Upload to App Store Connect
+        working-directory: ${{ env.APP_DIR }}
         env:
           TEAM: ${{ secrets.APPLE_TEAM_ID }}
           KEY_ID: ${{ secrets.ASC_KEY_ID }}

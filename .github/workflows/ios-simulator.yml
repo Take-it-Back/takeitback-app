@@ -6,29 +6,51 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["ios/**", "capacitor.config.ts", ".github/workflows/ios-simulator.yml"]
+    paths: ["ios/**", "apps/*/ios/**", "capacitor.config.ts", "apps/*/capacitor.config.ts", ".github/workflows/ios-simulator.yml"]
+  # Called by mobile-layout-check.yml to prove the build still works after the monorepo move.
+  workflow_call:
+    inputs:
+      app_dir:
+        type: string
+        default: ""
+      simulate_monorepo:
+        type: boolean
+        default: false
 
 jobs:
   simulator:
     runs-on: macos-15
     timeout-minutes: 60
+    env:
+      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
+      APP_DIR: ${{ inputs.app_dir || vars.MOBILE_APP_DIR || '.' }}
+    defaults:
+      run:
+        shell: bash
     steps:
       - uses: actions/checkout@v4
+      - name: Simulate the monorepo layout (test only)
+        if: inputs.simulate_monorepo
+        run: bash .github/scripts/simulate-monorepo.sh "$APP_DIR"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
-      - run: npm ci
-      - run: npx cap sync ios
+      - name: Install
+        run: bash .github/scripts/install.sh "$APP_DIR"
+      - name: Sync the native project
+        working-directory: ${{ env.APP_DIR }}
+        run: npx cap sync ios
       - name: Pick the newest Xcode
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)" && xcodebuild -version
       - name: Build for the simulator
+        working-directory: ${{ env.APP_DIR }}
         run: |
           xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Debug \
             -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO build | tail -40
           test -d build/Build/Products/Debug-iphonesimulator/App.app
       - name: Launch on a simulated iPhone
+        working-directory: ${{ env.APP_DIR }}
         run: |
           mkdir -p shots
           DEVICE=$(xcrun simctl list devices available -j | python3 -c "import json,sys; d=json.load(sys.stdin)['devices']; c=[x for r,v in d.items() if 'iOS' in r for x in v if x['name'].startswith('iPhone')]; print(c[-1]['udid'])")
@@ -42,5 +64,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: iphone-simulator
-          path: shots/
+          name: iphone-simulator${{ inputs.simulate_monorepo && '-monorepo' || '' }}
+          path: ${{ env.APP_DIR }}/shots/

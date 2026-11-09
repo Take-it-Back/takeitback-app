@@ -20,7 +20,16 @@ on:
         default: false
   push:
     branches: [main]
-    paths: ["android/**", "capacitor.config.ts", ".github/workflows/android.yml"]
+    paths: ["android/**", "apps/*/android/**", "capacitor.config.ts", "apps/*/capacitor.config.ts", ".github/workflows/android.yml"]
+  # Called by mobile-layout-check.yml to prove the build still works after the monorepo move.
+  workflow_call:
+    inputs:
+      app_dir:
+        type: string
+        default: ""
+      simulate_monorepo:
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -29,23 +38,32 @@ jobs:
     env:
       ANDROID_VERSION_NAME: ${{ github.event.inputs.version || '1.0' }}
       ANDROID_VERSION_CODE: ${{ github.run_number }}
+      # Folder that holds capacitor.config.ts, android/ and ios/. "." today; "apps/web" after the monorepo move.
+      # Set the MOBILE_APP_DIR repository variable at cutover; no workflow edit needed.
+      APP_DIR: ${{ inputs.app_dir || vars.MOBILE_APP_DIR || '.' }}
     steps:
       - uses: actions/checkout@v4
+      - name: Simulate the monorepo layout (test only)
+        if: inputs.simulate_monorepo
+        run: bash .github/scripts/simulate-monorepo.sh "$APP_DIR"
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: npm
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
-      - run: npm ci
-      - run: npx cap sync android
+      - name: Install
+        run: bash .github/scripts/install.sh "$APP_DIR"
+      - name: Sync the native project
+        working-directory: ${{ env.APP_DIR }}
+        run: npx cap sync android
 
       - name: Firebase config (phone alerts)
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         if: env.GOOGLE_SERVICES_JSON != ''
+        working-directory: ${{ env.APP_DIR }}
         run: printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
 
       - name: Upload key
@@ -57,7 +75,7 @@ jobs:
           echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
 
       - name: Build
-        working-directory: android
+        working-directory: ${{ env.APP_DIR }}/android
         env:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -79,6 +97,7 @@ jobs:
           profile: pixel_7
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -dns-server 8.8.8.8,1.1.1.1
+          working-directory: ${{ env.APP_DIR }}
           script: |
             mkdir -p shots
             for i in $(seq 1 30); do adb shell ping -c 1 -W 2 www.takeitback.app >/dev/null 2>&1 && echo "EMULATOR ONLINE" && break; sleep 4; done
@@ -99,11 +118,11 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: android-build
+          name: android-build${{ inputs.simulate_monorepo && '-monorepo' || '' }}
           path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/bundle/release/app-release.aab
-            shots/
+            ${{ env.APP_DIR }}/android/app/build/outputs/apk/debug/app-debug.apk
+            ${{ env.APP_DIR }}/android/app/build/outputs/bundle/release/app-release.aab
+            ${{ env.APP_DIR }}/shots/
 
       - name: Upload to Play internal testing
         if: github.event.inputs.upload == 'true'
@@ -111,7 +130,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: app.takeitback
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: ${{ env.APP_DIR }}/android/app/build/outputs/bundle/release/app-release.aab
           track: internal
           status: draft
 
