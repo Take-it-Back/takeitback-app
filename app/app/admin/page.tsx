@@ -157,8 +157,7 @@ export default async function AdminPage() {
           <div className="stack" style={{ marginTop: 4 }}>
             {o.recent_cases.map((c) => (
               <div key={c.id} className="list-row">
-                <span className="stack grow"><span style={{ fontWeight: 500, fontSize: 15 }}>{c.title}</span><span className="muted small">{CATEGORY_INFO[c.category]?.label} · {c.email} · {shortDate(c.created_at)}</span></span>
-                {c.amount_at_stake ? <span style={{ fontWeight: 500 }}>{money(c.amount_at_stake)}</span> : null}
+                <span className="stack grow"><span style={{ fontWeight: 500, fontSize: 15 }}>{CATEGORY_INFO[c.category]?.label ?? "Case"}</span><span className="muted small">Case {c.id.slice(0, 8)} · {shortDate(c.created_at)}</span></span>
                 <span className={`tag ${STATUS_INFO[c.status]?.tone === "orange" ? "tag-orange" : "tag-gray"}`}>{STATUS_INFO[c.status]?.label || c.status}</span>
               </div>
             ))}
@@ -172,13 +171,13 @@ export default async function AdminPage() {
             {(o.stuck_cases || []).map((c) => (
               <div key={c.id} className="list-row" style={{ alignItems: "flex-start" }}>
                 <span className="tag tag-orange">Stuck</span>
-                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14 }}>{c.title} is still &ldquo;reading&rdquo;</span><span className="muted small">{CATEGORY_INFO[c.category]?.label} · {c.email} · since {shortDate(c.updated_at)}</span></span>
+                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14 }}>Case {c.id.slice(0, 8)} is still &ldquo;reading&rdquo;</span><span className="muted small">{CATEGORY_INFO[c.category]?.label} · since {shortDate(c.updated_at)}</span></span>
               </div>
             ))}
             {(o.ai_failures || []).map((e, i) => (
               <div key={i} className="list-row" style={{ alignItems: "flex-start" }}>
                 <span className="tag tag-gray">{AI_AREA[e.area] || e.area}</span>
-                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14, wordBreak: "break-word" }}>{e.message}</span><span className="muted small">{e.case_title ? `${e.case_title} · ` : ""}{e.category ? `${CATEGORY_INFO[e.category]?.label} · ` : ""}{e.email || "—"} · {shortDate(e.created_at)}</span></span>
+                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14, wordBreak: "break-word" }}>{e.message}</span><span className="muted small">{e.category ? `${CATEGORY_INFO[e.category]?.label} · ` : ""}{e.email || "—"} · {shortDate(e.created_at)}</span></span>
               </div>
             ))}
             {!(o.ai_failures || []).length && !(o.stuck_cases || []).length && <p className="muted" style={{ margin: "8px 0 0" }}>No failed reads.</p>}
@@ -196,7 +195,7 @@ export default async function AdminPage() {
             {!(o.errors || []).length && <p className="muted" style={{ margin: "8px 0 0" }}>No errors logged.</p>}
           </div>
         </section>
-        <p className="muted small">Case contents and files stay private to each user; this page shows totals and titles only. <Link href="/app">Back to your cases</Link></p>
+        <p className="muted small">Case contents and files stay private to each user; this page shows counts, categories and dates only, never case titles, amounts or documents. <Link href="/app">Back to your cases</Link></p>
       </div>
     </main>
   );
