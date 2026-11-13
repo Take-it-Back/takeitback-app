@@ -13,11 +13,11 @@ type Overview = {
   totals: Record<string, number>;
   by_category: Record<string, number>;
   users: { id: string; email: string; full_name: string | null; state: string | null; plan: string; plan_status: string | null; is_admin: boolean; created_at: string; last_sign_in_at: string | null; cases: number; letters: number }[];
-  recent_cases: { id: string; title: string; category: Category; status: CaseStatus; amount_at_stake: number | null; created_at: string; email: string }[];
+  recent_cases: { id: string; category: Category; status: CaseStatus; created_at: string }[];
   funnel?: Record<string, number>;
   errors?: { area: string; message: string; path: string | null; created_at: string; email: string | null }[];
-  ai_failures?: { area: string; message: string; path: string | null; created_at: string; email: string | null; case_title: string | null; category: Category | null }[];
-  stuck_cases?: { id: string; title: string; category: Category; updated_at: string; email: string }[];
+  ai_failures?: { area: string; message: string; created_at: string; category: Category | null }[];
+  stuck_cases?: { id: string; category: Category; updated_at: string }[];
 };
 
 const AI_AREA: Record<string, string> = { analyze: "Scan", reply: "Reply read", letter: "Letter" };
@@ -177,7 +177,7 @@ export default async function AdminPage() {
             {(o.ai_failures || []).map((e, i) => (
               <div key={i} className="list-row" style={{ alignItems: "flex-start" }}>
                 <span className="tag tag-gray">{AI_AREA[e.area] || e.area}</span>
-                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14, wordBreak: "break-word" }}>{e.message}</span><span className="muted small">{e.category ? `${CATEGORY_INFO[e.category]?.label} · ` : ""}{e.email || "—"} · {shortDate(e.created_at)}</span></span>
+                <span className="stack grow" style={{ minWidth: 0 }}><span style={{ fontSize: 14, wordBreak: "break-word" }}>{e.message}</span><span className="muted small">{e.category ? `${CATEGORY_INFO[e.category]?.label} · ` : ""}{shortDate(e.created_at)}</span></span>
               </div>
             ))}
             {!(o.ai_failures || []).length && !(o.stuck_cases || []).length && <p className="muted" style={{ margin: "8px 0 0" }}>No failed reads.</p>}
