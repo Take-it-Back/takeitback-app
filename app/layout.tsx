@@ -4,6 +4,7 @@ import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import NativeBridge from "@/components/NativeBridge";
 import UpdateGate from "@/components/UpdateGate";
+import FirstTouch from "@/components/FirstTouch";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const fraunces = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], axes: ["opsz"], display: "swap", variable: "--font-serif" });
@@ -46,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PwaRegister />
         <NativeBridge />
         <UpdateGate />
+        <FirstTouch />
         <SpeedInsights />
       </body>
     </html>

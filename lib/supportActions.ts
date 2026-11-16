@@ -46,6 +46,7 @@ export async function replySupportTicket(_: FormState, fd: FormData): Promise<Fo
   if (error || !data) return { error: friendly(error?.message) };
   const t = data as TicketInfo & { from_staff: boolean; token: string | null };
   if (t.from_staff) {
+    await supabase.rpc("admin_log", { p_action: "support.replied", p_target_type: "support_ticket", p_target_id: ticket, p_after: { chars: body.length } });
     const sent = await notifyStaffReply(t, body).catch(() => ({ ok: false as const }));
     if (!sent.ok) return { error: "Your reply was saved, but the email to them didn't send. They'll still see it when they open the request." };
   } else {
@@ -62,7 +63,9 @@ export async function replySupportTicket(_: FormState, fd: FormData): Promise<Fo
 export async function setSupportStatus(fd: FormData) {
   const supabase = await createClient();
   const back = str(fd, "back");
-  await supabase.rpc("support_set_status", { p_ticket: str(fd, "ticket"), p_status: str(fd, "status"), p_token: str(fd, "token") || null });
+  const { error } = await supabase.rpc("support_set_status", { p_ticket: str(fd, "ticket"), p_status: str(fd, "status"), p_token: str(fd, "token") || null });
+  // Staff changes go in the admin audit log; for anyone else admin_log refuses and nothing is written.
+  if (!error && !str(fd, "token")) await supabase.rpc("admin_log", { p_action: "support.status_set", p_target_type: "support_ticket", p_target_id: str(fd, "ticket"), p_after: { status: str(fd, "status") } });
   if (back.startsWith("/")) {
     revalidatePath(back);
     redirect(back);

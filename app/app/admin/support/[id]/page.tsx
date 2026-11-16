@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
+import { requireAdminRole } from "@/lib/adminRole";
 import AdminMfa from "@/components/AdminMfa";
 import SupportThread, { StatusTag, type SupportMessage } from "@/components/SupportThread";
 import { SupportReply } from "@/components/Support";
@@ -15,9 +16,8 @@ type Ticket = { id: string; number: number; email: string; name: string | null; 
 export default async function AdminSupportThread({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
-  const { supabase, user } = await requireUser();
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-  if (!me?.is_admin) notFound();
+  const { supabase } = await requireUser();
+  await requireAdminRole(supabase);
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== "aal2") {
     return <main id="main" className="app-main wide"><h1 className="page-title" style={{ marginBottom: 16 }}>Support request</h1><AdminMfa /></main>;

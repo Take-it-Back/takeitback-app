@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
 import { SideBar, TabBar } from "@/components/AppNav";
+import AttributionPing from "@/components/AttributionPing";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/lib/email";
 import { welcomeEmail } from "@/lib/emails/templates";
@@ -37,6 +38,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </Suspense>
       {children}
       <TabBar />
+      <AttributionPing />
     </div>
   );
 }

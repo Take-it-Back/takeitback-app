@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
+import { requireAdminRole } from "@/lib/adminRole";
 import { CATEGORY_INFO, STATUS_INFO } from "@/lib/rules";
 import { money, shortDate } from "@/lib/format";
 import type { Category, CaseStatus } from "@/lib/types";
@@ -23,9 +23,8 @@ type Overview = {
 const AI_AREA: Record<string, string> = { analyze: "Scan", reply: "Reply read", letter: "Letter" };
 
 export default async function AdminPage() {
-  const { supabase, user } = await requireUser();
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-  if (!me?.is_admin) notFound();
+  const { supabase } = await requireUser();
+  await requireAdminRole(supabase);
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
   if (aal?.currentLevel !== "aal2") {
     return (
@@ -70,7 +69,7 @@ export default async function AdminPage() {
     <main id="main" className="app-main wide">
       <div className="page-head" style={{ flexWrap: "wrap" }}>
         <h1 className="page-title">Admin</h1>
-        <span className="row wrap g8"><Link href="/app/admin/support" className="btn-plain" style={openSupport ? { background: "#1A1A1A", color: "#fff", borderColor: "#1A1A1A" } : undefined}>Support inbox{openSupport ? ` · ${openSupport} waiting` : ""}</Link><Link href="/status" className="btn-plain">Status</Link><Link href="/app/admin/rules" className="btn-plain">State rules review</Link><Link href="/app/admin/emails" className="btn-plain">Emails</Link><span className="tag tag-orange">Only admins see this</span></span>
+        <span className="row wrap g8"><Link href="/app/admin/support" className="btn-plain" style={openSupport ? { background: "#1A1A1A", color: "#fff", borderColor: "#1A1A1A" } : undefined}>Support inbox{openSupport ? ` · ${openSupport} waiting` : ""}</Link><Link href="/status" className="btn-plain">Status</Link><Link href="/app/admin/rules" className="btn-plain">State rules review</Link><Link href="/app/admin/emails" className="btn-plain">Emails</Link><Link href="/app/admin/marketing" className="btn-plain">Marketing</Link><Link href="/app/admin/team" className="btn-plain">Team</Link><span className="tag tag-orange">Only admins see this</span></span>
       </div>
 
       <div className="stack g20">

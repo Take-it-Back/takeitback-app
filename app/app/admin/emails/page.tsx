@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
+import { requireAdminRole } from "@/lib/adminRole";
 import { BackLink } from "@/components/ui";
 import { emailPreviews } from "@/lib/emails/templates";
 import { AUTH_EMAILS } from "@/lib/emails/auth";
@@ -8,9 +8,8 @@ import { AUTH_EMAILS } from "@/lib/emails/auth";
 export const metadata: Metadata = { title: "Emails", robots: { index: false } };
 
 export default async function EmailsPreview() {
-  const { supabase, user } = await requireUser();
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-  if (!me?.is_admin) notFound();
+  const { supabase } = await requireUser();
+  await requireAdminRole(supabase);
   const groups: [string, string, { key: string; label: string; subject: string; html: string }[]][] = [
     ["Account emails", "Sent by Supabase. Paste these into Supabase → Authentication → Emails → Templates.", AUTH_EMAILS.map((a) => ({ ...a, html: a.html.replaceAll("{{ .ConfirmationURL }}", "#").replaceAll("{{ .Token }}", "482913").replaceAll("{{ .Email }}", "maria@example.com").replaceAll("{{ .NewEmail }}", "maria.lopez@example.com") }))],
     ["App emails", "Sent by the app through Resend, automatically.", emailPreviews().map((e) => ({ key: e.key, label: e.label, subject: e.email.subject, html: e.email.html }))],

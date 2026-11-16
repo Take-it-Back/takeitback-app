@@ -1,6 +1,6 @@
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
+import { requireAdminRole } from "@/lib/adminRole";
 import { BackLink } from "@/components/ui";
 import { TABLES, RULES_CHECKED } from "@/lib/stateLaw";
 import { DEPOSIT_RULES } from "@/lib/deposits";
@@ -26,9 +26,8 @@ function cell(v: unknown) {
 }
 
 export default async function RulesReview({ searchParams }: { searchParams: Promise<{ t?: string }> }) {
-  const { supabase, user } = await requireUser();
-  const { data: me } = await supabase.from("profiles").select("is_admin").eq("id", user.id).maybeSingle();
-  if (!me?.is_admin) notFound();
+  const { supabase } = await requireUser();
+  await requireAdminRole(supabase);
   const { t = "debt" } = await searchParams;
   const all: Record<string, Record<string, unknown>> = { deposit: DEPOSIT_RULES as Record<string, unknown>, ...(TABLES as Record<string, Record<string, unknown>>) };
   const table = all[t] || all.debt;
