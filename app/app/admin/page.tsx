@@ -5,7 +5,6 @@ import { requireAdminRole } from "@/lib/adminRole";
 import { CATEGORY_INFO, STATUS_INFO } from "@/lib/rules";
 import { money, shortDate } from "@/lib/format";
 import type { Category, CaseStatus } from "@/lib/types";
-import AdminMfa from "@/components/AdminMfa";
 
 export const metadata: Metadata = { title: "Admin", robots: { index: false } };
 
@@ -25,15 +24,6 @@ const AI_AREA: Record<string, string> = { analyze: "Scan", reply: "Reply read", 
 export default async function AdminPage() {
   const { supabase } = await requireUser();
   await requireAdminRole(supabase);
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") {
-    return (
-      <main id="main" className="app-main wide">
-        <h1 className="page-title" style={{ marginBottom: 16 }}>Admin</h1>
-        <AdminMfa />
-      </main>
-    );
-  }
   const [{ data, error }, { data: costs }, { data: support }] = await Promise.all([supabase.rpc("admin_overview"), supabase.rpc("admin_ai_costs"), supabase.rpc("support_admin_list", { p_status: "open" })]);
   const openSupport = (support as { counts?: { open?: number } } | null)?.counts?.open ?? 0;
   // Estimated AI cost: token counts are exact; the per-million prices are settings (AI_PRICE_IN / AI_PRICE_OUT, in dollars).

@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
 import { requireAdminRole } from "@/lib/adminRole";
-import AdminMfa from "@/components/AdminMfa";
 import { StatusTag } from "@/components/SupportThread";
 import { PLATFORM_LABEL, topicLabel } from "@/lib/supportTopics";
 
@@ -22,10 +21,6 @@ export default async function SupportInbox({ searchParams }: { searchParams: Pro
   const tab = TABS.some(([k]) => k === s) ? (s as string) : "open";
   const { supabase } = await requireUser();
   await requireAdminRole(supabase);
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") {
-    return <main id="main" className="app-main wide"><h1 className="page-title" style={{ marginBottom: 16 }}>Support inbox</h1><AdminMfa /></main>;
-  }
   const { data, error } = await supabase.rpc("support_admin_list", { p_status: tab === "all" ? null : tab });
   const list = data as List | null;
   return (

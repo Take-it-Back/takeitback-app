@@ -14,7 +14,7 @@ export async function setRole(_: TeamState, f: FormData): Promise<TeamState> {
   const { error } = await supabase.rpc("admin_team_set", { p_email: email, p_role: role, p_reason: String(f.get("reason") ?? "") || null });
   if (error) return { error: error.code === "42501" ? "Only an owner can change the team." : clean(error.message) };
   revalidatePath("/app/admin/team");
-  return { ok: `${email} is now ${role === "readonly" ? "read only" : role}. They confirm a 6-digit code from an authenticator app the first time they open the admin.` };
+  return { ok: `${email} is now ${role === "readonly" ? "read only" : role}.` };
 }
 
 export async function removeMember(f: FormData) {

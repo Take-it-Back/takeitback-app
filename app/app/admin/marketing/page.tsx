@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
 import { requireAdminRole } from "@/lib/adminRole";
-import AdminMfa from "@/components/AdminMfa";
 import { ImportSpend, NewCampaign } from "./Forms";
 
 export const metadata: Metadata = { title: "Marketing", robots: { index: false } };
@@ -31,10 +30,6 @@ const pct = (a: number, b: number) => (b ? `${Math.round((a / b) * 100)}%` : "â€
 export default async function MarketingPage({ searchParams }: { searchParams: Promise<{ days?: string }> }) {
   const { supabase } = await requireUser();
   const { role } = await requireAdminRole(supabase, ["owner", "admin", "marketing", "readonly"]);
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") {
-    return <main id="main" className="app-main wide"><h1 className="page-title" style={{ marginBottom: 16 }}>Marketing</h1><AdminMfa /></main>;
-  }
   const sp = await searchParams;
   const days = RANGES.includes(Number(sp.days) as (typeof RANGES)[number]) ? Number(sp.days) : 30;
   const { data, error } = await supabase.rpc("admin_marketing", { p_days: days });

@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { requireUser } from "@/lib/supabase/server";
 import { requireAdminRole } from "@/lib/adminRole";
-import AdminMfa from "@/components/AdminMfa";
 import SupportThread, { StatusTag, type SupportMessage } from "@/components/SupportThread";
 import { SupportReply } from "@/components/Support";
 import { setSupportStatus } from "@/lib/supportActions";
@@ -18,10 +17,6 @@ export default async function AdminSupportThread({ params }: { params: Promise<{
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
   const { supabase } = await requireUser();
   await requireAdminRole(supabase);
-  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (aal?.currentLevel !== "aal2") {
-    return <main id="main" className="app-main wide"><h1 className="page-title" style={{ marginBottom: 16 }}>Support request</h1><AdminMfa /></main>;
-  }
   const { data } = await supabase.rpc("support_admin_thread", { p_ticket: id });
   if (!data) notFound();
   const t = data as Ticket;
