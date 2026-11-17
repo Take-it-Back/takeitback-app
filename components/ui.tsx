@@ -4,22 +4,26 @@ import { STATUS_INFO } from "@/lib/rules";
 import type { CaseStatus } from "@/lib/types";
 
 /** The mark: a freestanding "take it back" U-turn arrow. */
+// Final logo (17 Nov 2026): the crossed-out bill. Files live in public/brand.
 export function Mark({ size = 32, inverse = false }: { size?: number; inverse?: boolean }) {
-  const c = inverse ? "#fff" : "#BF4F28";
+  const bill = inverse ? "#fff" : "#BF4F28";
+  const slash = inverse ? "#fff" : "#2A1209";
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
-      <path d="M47 54V32a15 15 0 0 0-15-15H15" fill="none" stroke={c} strokeWidth="8.5" strokeLinecap="round" />
-      <path d="M26 6L15 17l11 11" fill="none" stroke={c} strokeWidth="8.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="47" cy="54" r="4.25" fill={inverse ? "#fff" : "#1A1A1A"} />
+    <svg width={size} height={size} viewBox="12 8 76 84" aria-hidden="true">
+      <path d="M26 12 H74 V88 L66 82 L58 88 L50 82 L42 88 L34 82 L26 88 Z" fill="none" stroke={bill} strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M38 34 H62 M38 48 H62 M38 62 H54" fill="none" stroke={bill} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M16 76 L84 22" fill="none" stroke={slash} strokeWidth="9" strokeLinecap="round" />
     </svg>
   );
 }
 
 export function Logo({ href = "/", size = 22, inverse = false }: { href?: string; size?: number; inverse?: boolean }) {
+  const ink = inverse ? "#fff" : "#2A1209";
   return (
-    <Link href={href} className="logo" aria-label="Take it back home" style={{ color: inverse ? "#fff" : "#1A1A1A" }}>
+    <Link href={href} className="logo" aria-label="Take it back home" style={{ color: ink }}>
       <Mark size={Math.round(size * 1.5)} inverse={inverse} />
-      <span style={{ fontFamily: "var(--sans)", fontWeight: 700, fontSize: size, letterSpacing: "-0.03em" }}>take it back</span>
+      <span aria-hidden="true" style={{ width: 1.5, alignSelf: "stretch", margin: `${Math.round(size * 0.15)}px 0`, background: ink, opacity: 0.2 }} />
+      <span style={{ fontFamily: "'TIB Logo', var(--sans)", fontWeight: 700, fontSize: size, letterSpacing: "-0.01em" }}>take it back</span>
     </Link>
   );
 }

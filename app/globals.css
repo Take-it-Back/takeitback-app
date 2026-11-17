@@ -426,3 +426,6 @@ html.native-app { -webkit-tap-highlight-color: transparent; }
 .strip:focus-visible { outline: 2px solid #BF4F28; outline-offset: 4px; }
 .panel-orange .serif .o, .panel-gray .serif .o, .card .serif .o { color: #A8441F; }
 .s-dark .s-eyebrow, .s-dark > span:first-child { color: #E8875F !important; }
+
+/* The logo's lettering (Outfit), only the letters in "take it back". */
+@font-face { font-family: 'TIB Logo'; src: url(/fonts/outfit-logo.woff2) format('woff2'); font-weight: 700; font-display: swap; }
